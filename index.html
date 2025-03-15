@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, #e6f3ff, #f0f7ff, #fff5f5, #fff0f0);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 20px;
+            transition: all 1s ease;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 3.5rem;
+            border-radius: 35px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.08),
+                        inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+            width: 100%;
+            max-width: 480px;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Study Mode Container */
+        body.study-mode .container {
+            background: rgba(168, 230, 207, 0.12);
+            box-shadow: 0 25px 45px rgba(168, 230, 207, 0.12),
+                        inset 0 0 0 2px rgba(168, 230, 207, 0.15);
+        }
+
+        /* Exercise Mode Container */
+        body.exercise-mode .container {
+            background: rgba(137, 207, 240, 0.12);
+            box-shadow: 0 25px 45px rgba(137, 207, 240, 0.12),
+                        inset 0 0 0 2px rgba(137, 207, 240, 0.15);
+        }
+
+        /* Break Mode Container */
+        body.break-mode .container {
+            background: rgba(230, 207, 255, 0.12);
+            box-shadow: 0 25px 45px rgba(230, 207, 255, 0.12),
+                        inset 0 0 0 2px rgba(230, 207, 255, 0.15);
+        }
+
+        body.study-mode .container {
+            background: rgba(168, 230, 207, 0.2);
+        }
+
+        body.exercise-mode .container {
+            background: rgba(137, 207, 240, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2.8rem;
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes titleAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+        }
+
+        label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            padding: 1rem 1.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: #2d3748;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        input[type="number"]:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        select {
+            padding: 1rem 2.2rem 1rem 1.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.15);
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232d3748' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            min-width: 120px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        select:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Add styles for dropdown options */
+        select option {
+            background: white;
+            color: #1a202c;
+            padding: 10px;
+            font-size: 0.95rem;
+            border: none;
+        }
+
+        button {
+            margin-top: 2rem;
+            padding: 1.4rem;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #a8e6cf, #7bc5ae);
+            color: #234e44;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(168, 230, 207, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(168, 230, 207, 0.6);
+            background: linear-gradient(135deg, #7bc5ae, #5aa090);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(168, 230, 207, 0.4);
+        }
+
+        .timer-section {
+            text-align: center;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2rem 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            z-index: 2;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 1.2rem 3.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 18px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            min-width: 160px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .pause-btn {
+            color: #234e44;
+            border-color: #a8e6cf;
+        }
+
+        .pause-btn:hover {
+            background: #a8e6cf;
+            color: white;
+        }
+
+        .pause-btn.paused {
+            background: #a8e6cf;
+            color: white;
+        }
+
+        .exit-btn {
+            color: #e57373;
+            border-color: #ffcdd2;
+        }
+
+        .exit-btn:hover {
+            background: #e57373;
+            color: white;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 2rem 0;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(168, 230, 207, 0.7), rgba(123, 197, 174, 0.7));
+            border-radius: 20px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        body.study-mode .progress-bar {
+            background: linear-gradient(90deg, rgba(168, 230, 207, 0.7), rgba(123, 197, 174, 0.7));
+        }
+
+        body.break-mode .progress-bar {
+            background: linear-gradient(90deg, rgba(137, 207, 240, 0.7), rgba(108, 180, 217, 0.7));
+        }
+
+        .timer-content {
+            position: relative;
+            z-index: 1;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            padding: 1rem 0;
+        }
+
+        .timer-label {
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #4a5568;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            opacity: 0.9;
+        }
+
+        .timer-display {
+            font-size: 5.5rem;
+            font-weight: 600;
+            margin: 2rem 0;
+            background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+            font-variant-numeric: tabular-nums;
+            animation: breathe 4s ease-in-out infinite;
+            letter-spacing: -1px;
+            opacity: 0.9;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.9;
+            }
+            50% {
+                transform: scale(1.01);
+                opacity: 1;
+            }
+        }
+
+        /* Study Mode Colors - Soft Greens */
+        body.study-mode-setup {
+            background: linear-gradient(-45deg, #e3f4ea, #eaf7f0, #f0f9f5, #e8f6ef);
+            background-size: 400% 400%;
+        }
+
+        body.study-mode {
+            background: linear-gradient(-45deg, #dcefe5, #e5f4ec, #eaf7f0, #e0f2e9);
+            background-size: 400% 400%;
+        }
+
+        /* Exercise Mode Colors - Soft Blues */
+        body.exercise-mode-setup {
+            background: linear-gradient(-45deg, #e3f0ff, #eaf4ff, #f0f7ff, #e8f3ff);
+            background-size: 400% 400%;
+        }
+
+        body.exercise-mode {
+            background: linear-gradient(-45deg, #dce9ff, #e5f0ff, #eaf4ff, #e0ecff);
+            background-size: 400% 400%;
+        }
+
+        /* Break Mode Colors - Soft Lavender */
+        body.break-mode {
+            background: linear-gradient(-45deg, #f0e6ff, #f5edff, #f8f0ff, #f2e8ff);
+            background-size: 400% 400%;
+        }
+
+        /* Update button colors based on mode */
+        body.study-mode-setup button:not(.mode-btn):not(.control-btn) {
+            background: linear-gradient(135deg, #a8e6cf, #7bc5ae);
+        }
+
+        body.exercise-mode-setup button:not(.mode-btn):not(.control-btn) {
+            background: linear-gradient(135deg, #89cff0, #6cb4d9);
+            color: #2f8ab3;
+            box-shadow: 0 10px 25px rgba(137, 207, 240, 0.5);
+        }
+
+        body.exercise-mode-setup button:not(.mode-btn):not(.control-btn):hover {
+            background: linear-gradient(135deg, #6cb4d9, #4a9eca);
+            box-shadow: 0 15px 30px rgba(137, 207, 240, 0.6);
+        }
+
+        /* Update input hover states based on mode */
+        body.exercise-mode-setup input[type="number"]:hover {
+            border-color: #89cff0;
+        }
+
+        body.exercise-mode-setup input[type="number"]:focus {
+            border-color: #6cb4d9;
+            box-shadow: 0 0 0 4px rgba(137, 207, 240, 0.2);
+        }
+
+        body.exercise-mode-setup select:hover {
+            border-color: #89cff0;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 1.2rem 2.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.15);
+            min-width: 160px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .mode-btn.study {
+            color: #1a2f2a;
+            border-color: rgba(168, 230, 207, 0.8);
+            font-weight: 700;
+        }
+
+        .mode-btn.exercise {
+            color: #1a4d6e;
+            border-color: rgba(137, 207, 240, 0.8);
+            font-weight: 700;
+        }
+
+        .mode-btn.active {
+            color: white;
+        }
+
+        .mode-btn.study.active {
+            background: #a8e6cf;
+        }
+
+        .mode-btn.exercise.active {
+            background: #89cff0;
+        }
+
+        /* Exercise Mode Colors */
+        body.exercise-mode {
+            background: linear-gradient(-45deg, #dce9ff, #e5f0ff, #eaf4ff, #e0ecff);
+            background-size: 400% 400%;
+        }
+
+        body.exercise-mode .progress-bar {
+            background: linear-gradient(90deg, rgba(137, 207, 240, 0.7), rgba(108, 180, 217, 0.7));
+        }
+
+        body.exercise-mode .timer-label {
+            color: #2f8ab3;
+        }
+
+        body.exercise-mode .pause-btn {
+            color: #2f8ab3;
+            border-color: #89cff0;
+        }
+
+        body.exercise-mode .pause-btn:hover,
+        body.exercise-mode .pause-btn.paused {
+            background: #89cff0;
+            color: white;
+        }
+
+        .total-time-circle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .total-time-circle.visible {
+            display: flex;
+        }
+
+        .circle-content {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .total-time-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 3px;
+            line-height: 1.2;
+            opacity: 0.9;
+        }
+
+        .total-time-display {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            line-height: 1;
+            opacity: 0.9;
+        }
+
+        .circle-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--progress-color) var(--progress),
+                transparent var(--progress)
+            );
+            --progress-color: #a8e6cf;
+            --progress: 0%;
+        }
+
+        body.exercise-mode .circle-progress {
+            --progress-color: #89cff0;
+        }
+
+        body.break-mode .circle-progress {
+            --progress-color: #89cff0;
+        }
+
+        /* Add animation for the circle appearance */
+        @keyframes circleAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .total-time-circle.visible {
+            display: flex;
+            animation: circleAppear 0.3s ease-out forwards;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9998;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .completion-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            max-width: 90%;
+            width: 500px;
+            z-index: 9999;
+        }
+
+        .completion-modal.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .completion-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .completion-message {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .completion-emoji {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 1.2s ease infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .close-modal-btn {
+            padding: 1.2rem 3rem;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #a8e6cf 0%, #7bc5ae 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 12px 30px rgba(168, 230, 207, 0.4);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .close-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(168, 230, 207, 0.5);
+            background: linear-gradient(135deg, #7bc5ae 0%, #5aa090 100%);
+        }
+
+        body.exercise-mode .close-modal-btn {
+            background: linear-gradient(135deg, #89cff0, #6cb4d9);
+            color: #2f8ab3;
+            box-shadow: 0 5px 15px rgba(137, 207, 240, 0.4);
+        }
+
+        body.exercise-mode .close-modal-btn:hover {
+            background: linear-gradient(135deg, #6cb4d9, #4a9eca);
+            box-shadow: 0 8px 20px rgba(137, 207, 240, 0.6);
+        }
+
+        /* Celebration Effects */
+        .celebration-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .celebration-container.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .party-element {
+            position: absolute;
+            opacity: 0;
+            font-size: 2rem;
+        }
+
+        .popper {
+            font-size: 3rem;
+        }
+
+        .star {
+            color: gold;
+        }
+
+        .crystal {
+            color: #89cff0;
+        }
+
+        @keyframes fallFromBottom {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-20vh) scale(1.2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes swingLeft {
+            0% {
+                transform: translateX(-100vw) translateY(100vh) rotate(-45deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(20vw) translateY(-20vh) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes swingRight {
+            0% {
+                transform: translateX(100vw) translateY(100vh) rotate(45deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-20vw) translateY(-20vh) rotate(-45deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+        }
+
+        .celebration-container .party-element {
+            animation-duration: 2s;
+            animation-fill-mode: forwards;
+        }
+
+        .celebration-container .sparkle {
+            animation: sparkle 1s infinite;
+        }
+
+        /* Fireworks Animation */
+        .firework-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: firework-explode 2s ease-out forwards;
+        }
+
+        @keyframes firework-explode {
+            0% {
+                transform: translateY(100vh);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(40vh);
+            }
+            60%, 100% {
+                transform: translateY(40vh);
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        .firework::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: scale(30);
+            background: radial-gradient(circle, 
+                var(--color1) 0%, 
+                var(--color2) 20%, 
+                var(--color3) 40%, 
+                var(--color4) 60%, 
+                rgba(255,0,0,0) 100%
+            );
+            animation: firework-fade 2s ease-out forwards;
+        }
+
+        .firework.gold::before {
+            --color1: rgba(255,255,255,0.8);
+            --color2: rgba(255,215,0,0.8);
+            --color3: rgba(255,180,0,0.8);
+            --color4: rgba(255,140,0,0.8);
+        }
+
+        .firework.blue::before {
+            --color1: rgba(255,255,255,0.8);
+            --color2: rgba(0,191,255,0.8);
+            --color3: rgba(0,150,255,0.8);
+            --color4: rgba(0,100,255,0.8);
+        }
+
+        .firework.green::before {
+            --color1: rgba(255,255,255,0.8);
+            --color2: rgba(50,205,50,0.8);
+            --color3: rgba(34,139,34,0.8);
+            --color4: rgba(0,100,0,0.8);
+        }
+
+        .firework.purple::before {
+            --color1: rgba(255,255,255,0.8);
+            --color2: rgba(147,112,219,0.8);
+            --color3: rgba(138,43,226,0.8);
+            --color4: rgba(75,0,130,0.8);
+        }
+
+        .firework.pink::before {
+            --color1: rgba(255,255,255,0.8);
+            --color2: rgba(255,192,203,0.8);
+            --color3: rgba(255,105,180,0.8);
+            --color4: rgba(219,112,147,0.8);
+        }
+
+        @keyframes firework-fade {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(30);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(50);
+                opacity: 0;
+            }
+        }
+
+        /* Sparkles and Stars */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-fall 1.5s linear forwards;
+        }
+
+        @keyframes sparkle-fall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: gold;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: star-shine 2s ease-in-out infinite;
+        }
+
+        @keyframes star-shine {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+        }
+
+        .signature {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: rgba(74, 85, 104, 0.4);
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .signature:hover {
+            opacity: 1;
+        }
+
+        /* Mobile Optimizations */
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .timer-display {
+                font-size: 4rem;
+            }
+
+            .mode-selector {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .mode-btn {
+                width: 100%;
+            }
+
+            .timer-controls {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .control-btn {
+                width: 100%;
+            }
+
+            .input-container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            input[type="number"], select {
+                width: 100%;
+            }
+
+            .completion-modal {
+                padding: 2rem;
+                width: 90%;
+            }
+
+            .completion-title {
+                font-size: 1.8rem;
+            }
+
+            .total-time-circle {
+                width: 70px;
+                height: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signature">Made by Subham ❤️</div>
+    <div class="firework-container"></div>
+    <div class="celebration-container"></div>
+    <div class="container">
+        <div id="setup-section">
+            <h1>Timer</h1>
+            <div class="mode-selector">
+                <button class="mode-btn study active" onclick="selectMode('study')">Study Mode</button>
+                <button class="mode-btn exercise" onclick="selectMode('exercise')">Exercise Mode</button>
+            </div>
+            <div class="setup-form">
+                <div class="input-group">
+                    <label>Total Duration</label>
+                    <div class="input-container">
+                        <input type="number" id="total-time" min="1" value="3">
+                        <select id="total-time-unit">
+                            <option value="hours">Hours</option>
+                            <option value="minutes">Minutes</option>
+                            <option value="seconds">Seconds</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label id="activity-duration-label">Study Duration</label>
+                    <div class="input-container">
+                        <input type="number" id="activity-time" min="1" value="25">
+                        <select id="activity-time-unit">
+                            <option value="minutes">Minutes</option>
+                            <option value="seconds">Seconds</option>
+                            <option value="hours">Hours</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Break Duration</label>
+                    <div class="input-container">
+                        <input type="number" id="break-time" min="1" value="5">
+                        <select id="break-time-unit">
+                            <option value="minutes">Minutes</option>
+                            <option value="seconds">Seconds</option>
+                            <option value="hours">Hours</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="startTimer()">Start Timer</button>
+            </div>
+        </div>
+        <div id="timer-section" style="display: none;">
+            <div class="timer-content">
+                <div class="timer-label" id="current-phase">Study Time</div>
+                <div class="timer-display" id="timer">00:00:00</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </div>
+            <div class="timer-controls">
+                <button class="control-btn pause-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+                <button class="control-btn exit-btn" onclick="exitTimer()">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="total-time-circle">
+        <div class="circle-content">
+            <div class="total-time-label">Total Time Left</div>
+            <div class="total-time-display" id="total-time-display">00:00:00</div>
+        </div>
+        <div class="circle-progress"></div>
+    </div>
+
+    <div class="modal-overlay"></div>
+    <div class="completion-modal">
+        <div class="completion-content">
+            <div class="party-popper left">🎉</div>
+            <div class="party-popper right">🎉</div>
+            <div class="completion-emoji">🌟</div>
+            <div class="completion-title">Congratulations!</div>
+            <div class="completion-message">You've successfully completed your session. Great job!</div>
+            <button class="close-modal-btn" onclick="closeCompletionModal()">Done</button>
+        </div>
+    </div>
+
+    <!-- Audio elements for different alarms -->
+    <audio id="study-complete" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2558/2558-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="exercise-complete" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2558/2558-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="break-complete" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2558/2558-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="total-complete" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="party-sound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1927/1927-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="cheer-sound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2152/2152-preview.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let totalTimeInSeconds = 0;
+        let activityTimeInSeconds = 0;
+        let breakTimeInSeconds = 0;
+        let currentTimer = 0;
+        let isActivityPhase = true;
+        let timerInterval;
+        let isPaused = false;
+        let currentMode = 'study';
+        let initialTotalTime = 0;
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.mode-btn.${mode}`).classList.add('active');
+            
+            // Update labels
+            const activityLabel = document.getElementById('activity-duration-label');
+            activityLabel.textContent = mode === 'study' ? 'Study Duration' : 'Exercise Duration';
+            
+            // Update phase label if timer is running
+            const phaseLabel = document.getElementById('current-phase');
+            if (phaseLabel) {
+                phaseLabel.textContent = isActivityPhase ? 
+                    (mode === 'study' ? 'Study Time' : 'Exercise Time') : 'Break Time';
+            }
+
+            // Update setup screen colors
+            document.body.classList.remove('study-mode-setup', 'exercise-mode-setup');
+            document.body.classList.add(mode + '-mode-setup');
+        }
+
+        function updateTimerColors(isActivity) {
+            document.body.classList.remove('study-mode', 'exercise-mode', 'break-mode');
+            if (isActivity) {
+                document.body.classList.add(currentMode + '-mode');
+            } else {
+                document.body.classList.add('break-mode');
+            }
+        }
+
+        function convertToSeconds(value, unit) {
+            switch(unit) {
+                case 'hours': return value * 3600;
+                case 'minutes': return value * 60;
+                case 'seconds': return value;
+            }
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function setProgress(percent) {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${percent}%`;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (isPaused) {
+                clearInterval(timerInterval);
+                pauseBtn.textContent = 'Resume';
+                pauseBtn.classList.add('paused');
+            } else {
+                startInterval();
+                pauseBtn.textContent = 'Pause';
+                pauseBtn.classList.remove('paused');
+            }
+        }
+
+        function exitTimer() {
+            clearInterval(timerInterval);
+            document.querySelector('.total-time-circle').classList.remove('visible');
+            location.reload();
+        }
+
+        function updateTotalTimeCircle() {
+            const totalTimeDisplay = document.getElementById('total-time-display');
+            totalTimeDisplay.textContent = formatTime(totalTimeInSeconds);
+            
+            const progress = ((initialTotalTime - totalTimeInSeconds) / initialTotalTime) * 100;
+            document.querySelector('.circle-progress').style.setProperty('--progress', `${progress}%`);
+        }
+
+        function createCelebrationElements() {
+            const container = document.querySelector('.celebration-container');
+            container.innerHTML = ''; // Clear previous elements
+            
+            // Create party poppers
+            for (let i = 0; i < 10; i++) {
+                const popper = document.createElement('div');
+                popper.className = 'party-element popper';
+                popper.textContent = '🎉';
+                popper.style.left = Math.random() * 100 + 'vw';
+                popper.style.animationName = 'fallFromBottom';
+                popper.style.animationDelay = (Math.random() * 0.5) + 's';
+                container.appendChild(popper);
+            }
+
+            // Create stars
+            for (let i = 0; i < 15; i++) {
+                const star = document.createElement('div');
+                star.className = 'party-element star';
+                star.textContent = '⭐';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.animationName = i % 2 === 0 ? 'swingLeft' : 'swingRight';
+                star.style.animationDelay = (Math.random() * 0.8) + 's';
+                container.appendChild(star);
+            }
+
+            // Show the container
+            container.classList.add('visible');
+
+            // Remove the elements after animation
+            setTimeout(() => {
+                container.classList.remove('visible');
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 500);
+            }, 3000);
+        }
+
+        function createFirework() {
+            const firework = document.createElement('div');
+            firework.className = 'firework';
+            
+            // Add random color class
+            const colors = ['gold', 'blue', 'green', 'purple', 'pink'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            firework.classList.add(randomColor);
+            
+            // Random position and size
+            firework.style.left = (5 + Math.random() * 90) + 'vw';
+            const scale = 0.5 + Math.random() * 2;
+            firework.style.transform = `scale(${scale})`;
+            
+            return firework;
+        }
+
+        function showFireworks() {
+            const container = document.querySelector('.firework-container');
+            let fireworksLaunched = 0;
+            
+            function launchFirework() {
+                const firework = createFirework();
+                container.appendChild(firework);
+                
+                // Remove firework after animation
+                setTimeout(() => {
+                    container.removeChild(firework);
+                }, 2000);
+                
+                fireworksLaunched++;
+                if (fireworksLaunched < 30) { // Increased number of fireworks
+                    setTimeout(launchFirework, Math.random() * 200 + 50); // Faster launch sequence
+                }
+            }
+            
+            // Start launching fireworks
+            launchFirework();
+            
+            // Launch a second wave after 1.5 seconds
+            setTimeout(() => {
+                fireworksLaunched = 0;
+                launchFirework();
+            }, 1500);
+        }
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + 'vw';
+            sparkle.style.transform = `scale(${0.5 + Math.random()})`;
+            return sparkle;
+        }
+
+        function createStar() {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.top = Math.random() * 100 + 'vh';
+            star.style.transform = `scale(${1 + Math.random() * 2})`;
+            return star;
+        }
+
+        function showSparkles() {
+            const container = document.querySelector('.firework-container');
+            
+            function addSparkle() {
+                const sparkle = createSparkle();
+                container.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    container.removeChild(sparkle);
+                }, 1500);
+            }
+
+            // Add sparkles continuously
+            const sparkleInterval = setInterval(() => {
+                for (let i = 0; i < 3; i++) {
+                    addSparkle();
+                }
+            }, 200);
+
+            // Stop after 4 seconds
+            setTimeout(() => {
+                clearInterval(sparkleInterval);
+            }, 4000);
+        }
+
+        function addStars() {
+            const container = document.querySelector('.firework-container');
+            
+            // Add 20 stars
+            for (let i = 0; i < 20; i++) {
+                const star = createStar();
+                container.appendChild(star);
+                
+                // Remove star after random time
+                setTimeout(() => {
+                    container.removeChild(star);
+                }, 2000 + Math.random() * 2000);
+            }
+        }
+
+        function showCompletionModal() {
+            // First show the overlay and modal
+            const modal = document.querySelector('.completion-modal');
+            const overlay = document.querySelector('.modal-overlay');
+            
+            // Make sure elements exist before proceeding
+            if (!modal || !overlay) {
+                console.error('Modal elements not found');
+                return;
+            }
+
+            // Show overlay and modal
+            overlay.classList.add('visible');
+            modal.classList.add('visible');
+
+            // Start celebration effects
+            createCelebrationElements();
+            showFireworks();
+            showSparkles();
+            addStars();
+
+            // Play celebration sounds
+            playPartySequence();
+        }
+
+        function closeCompletionModal() {
+            const modal = document.querySelector('.completion-modal');
+            const overlay = document.querySelector('.modal-overlay');
+            
+            if (modal && overlay) {
+                modal.classList.remove('visible');
+                overlay.classList.remove('visible');
+            }
+
+            // Clean up celebration elements
+            const fireworkContainer = document.querySelector('.firework-container');
+            const celebrationContainer = document.querySelector('.celebration-container');
+            
+            if (fireworkContainer) {
+                fireworkContainer.innerHTML = '';
+            }
+            if (celebrationContainer) {
+                celebrationContainer.innerHTML = '';
+                celebrationContainer.classList.remove('visible');
+            }
+
+            // Reload the page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+
+        function playAlarm(type) {
+            let audio;
+            switch(type) {
+                case 'study':
+                    audio = document.getElementById('study-complete');
+                    break;
+                case 'exercise':
+                    audio = document.getElementById('exercise-complete');
+                    break;
+                case 'break':
+                    audio = document.getElementById('break-complete');
+                    break;
+            }
+            if (audio) {
+                audio.currentTime = 0;
+                audio.volume = 1.0; // Maximum volume
+                audio.play();
+                // Stop the sound after 1.5 seconds
+                setTimeout(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }, 1500);
+            }
+        }
+
+        function startTimer() {
+            // Get and convert all times to seconds
+            const totalTime = document.getElementById('total-time').value;
+            const totalTimeUnit = document.getElementById('total-time-unit').value;
+            totalTimeInSeconds = convertToSeconds(parseInt(totalTime), totalTimeUnit);
+            initialTotalTime = totalTimeInSeconds;
+
+            const activityTime = document.getElementById('activity-time').value;
+            const activityTimeUnit = document.getElementById('activity-time-unit').value;
+            activityTimeInSeconds = convertToSeconds(parseInt(activityTime), activityTimeUnit);
+
+            const breakTime = document.getElementById('break-time').value;
+            const breakTimeUnit = document.getElementById('break-time-unit').value;
+            breakTimeInSeconds = convertToSeconds(parseInt(breakTime), breakTimeUnit);
+
+            // Validate inputs
+            if (totalTimeInSeconds < activityTimeInSeconds) {
+                alert('Total time must be greater than ' + (currentMode === 'study' ? 'study' : 'exercise') + ' time!');
+                return;
+            }
+
+            // Hide setup section and show timer
+            document.getElementById('setup-section').style.display = 'none';
+            document.getElementById('timer-section').style.display = 'block';
+            document.querySelector('.total-time-circle').classList.add('visible');
+
+            // Start the first session
+            isActivityPhase = true;
+            currentTimer = activityTimeInSeconds;
+            updateTimerColors(true);
+            document.getElementById('current-phase').textContent = 
+                currentMode === 'study' ? 'Study Time' : 'Exercise Time';
+            updateTimer();
+            updateTotalTimeCircle();
+            isPaused = false;
+            document.getElementById('pauseBtn').classList.remove('paused');
+            startInterval();
+        }
+
+        function startInterval() {
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    currentTimer--;
+                    totalTimeInSeconds--;
+
+                    if (totalTimeInSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        currentTimer = 0;
+                        totalTimeInSeconds = 0;
+                        updateTimer();
+                        updateTotalTimeCircle();
+                        
+                        // Show completion modal immediately
+                        const modal = document.querySelector('.completion-modal');
+                        const overlay = document.querySelector('.modal-overlay');
+                        
+                        if (modal && overlay) {
+                            overlay.classList.add('visible');
+                            modal.classList.add('visible');
+                            
+                            // Start celebration effects
+                            setTimeout(() => {
+                                createCelebrationElements();
+                                showFireworks();
+                                showSparkles();
+                                addStars();
+                                playPartySequence();
+                            }, 100);
+                        }
+                        return;
+                    }
+
+                    if (currentTimer <= 0) {
+                        playAlarm(isActivityPhase ? currentMode : 'break');
+                        isActivityPhase = !isActivityPhase;
+                        currentTimer = isActivityPhase ? activityTimeInSeconds : breakTimeInSeconds;
+                        document.getElementById('current-phase').textContent = 
+                            isActivityPhase ? 
+                                (currentMode === 'study' ? 'Study Time' : 'Exercise Time') : 
+                                'Break Time';
+                        updateTimerColors(isActivityPhase);
+                    }
+
+                    updateTimer();
+                    updateTotalTimeCircle();
+                    const progress = (currentTimer / (isActivityPhase ? activityTimeInSeconds : breakTimeInSeconds)) * 100;
+                    setProgress(progress);
+                }
+            }, 1000);
+        }
+
+        function playPartySequence() {
+            // Play initial completion sound
+            const totalCompleteAudio = document.getElementById('total-complete');
+            const partySound = document.getElementById('party-sound');
+            const cheerSound = document.getElementById('cheer-sound');
+
+            totalCompleteAudio.volume = 1.0;
+            partySound.volume = 1.0;
+            cheerSound.volume = 1.0;
+
+            // Play sounds in sequence
+            totalCompleteAudio.play();
+            
+            // Play party sound after 500ms
+            setTimeout(() => {
+                partySound.play();
+            }, 500);
+
+            // Play cheer sound after 1s
+            setTimeout(() => {
+                cheerSound.play();
+            }, 1000);
+
+            // Stop all sounds after 2.5 seconds
+            setTimeout(() => {
+                totalCompleteAudio.pause();
+                totalCompleteAudio.currentTime = 0;
+                partySound.pause();
+                partySound.currentTime = 0;
+                cheerSound.pause();
+                cheerSound.currentTime = 0;
+            }, 2500);
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = formatTime(currentTimer);
+        }
+
+        // Initialize with study mode colors and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            selectMode('study');
+            
+            // Initialize modal elements
+            const modal = document.querySelector('.completion-modal');
+            const overlay = document.querySelector('.modal-overlay');
+            
+            if (!overlay) {
+                const newOverlay = document.createElement('div');
+                newOverlay.className = 'modal-overlay';
+                document.body.appendChild(newOverlay);
+            }
+            
+            if (!modal) {
+                const newModal = document.createElement('div');
+                newModal.className = 'completion-modal';
+                newModal.innerHTML = `
+                    <div class="completion-content">
+                        <div class="party-popper left">🎉</div>
+                        <div class="party-popper right">🎉</div>
+                        <div class="completion-emoji">🌟</div>
+                        <div class="completion-title">Congratulations!</div>
+                        <div class="completion-message">You've successfully completed your session. Great job!</div>
+                        <button class="close-modal-btn">Done</button>
+                    </div>
+                `;
+                document.body.appendChild(newModal);
+            }
+            
+            // Add click event listener to close modal button
+            const closeBtn = document.querySelector('.close-modal-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeCompletionModal);
+            }
+
+            // Ensure containers exist
+            const fireworkContainer = document.querySelector('.firework-container');
+            const celebrationContainer = document.querySelector('.celebration-container');
+            
+            if (!fireworkContainer) {
+                const newFireworkContainer = document.createElement('div');
+                newFireworkContainer.className = 'firework-container';
+                document.body.appendChild(newFireworkContainer);
+            }
+            
+            if (!celebrationContainer) {
+                const newCelebrationContainer = document.createElement('div');
+                newCelebrationContainer.className = 'celebration-container';
+                document.body.appendChild(newCelebrationContainer);
+            }
+        });
+    </script>
+</body>
+</html>
